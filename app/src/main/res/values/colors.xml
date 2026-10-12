@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="fondo">#F7E7D4</color>
+  <color name="carta">#FFFAF4</color>
+  <color name="bordo">#E6CDB2</color>
+  <color name="testo">#3B1A08</color>
+  <color name="accento">#C4501A</color>
+  <color name="su_accento">#FFFFFF</color>
+  <color name="icona_fondo">#FFFAF4</color>
+</resources>

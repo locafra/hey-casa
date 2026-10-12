@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="Theme.HeyCasa" parent="android:Theme.DeviceDefault.DayNight">
+    <item name="android:windowBackground">@color/fondo</item>
+    <item name="android:windowActionBar">false</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:colorAccent">@color/accento</item>
+    <item name="android:textColorPrimary">@color/testo</item>
+    <item name="android:windowSplashScreenBackground">@color/fondo</item>
+  </style>
+</resources>

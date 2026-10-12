@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#FFFFFF"/>
+<line x1="300.8" y1="269.4" x2="404" y2="124" stroke="#11C4DA" stroke-width="5" stroke-linecap="round"/>
+<g transform="translate(256 256) scale(1.12) translate(-256 -256)">
+  <g fill="none" stroke="#054177" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M118 244 L256 124 L394 244"/>
+    <path d="M154 226 V372 a20 20 0 0 0 20 20 H338 a20 20 0 0 0 20 -20 V226"/>
+  </g>
+  <g fill="none" stroke="#11C4DA" stroke-width="7" stroke-linecap="round"><line x1="180" y1="322" x2="218" y2="284"/><line x1="218" y1="284" x2="256" y2="338"/><line x1="256" y1="338" x2="296" y2="268"/><line x1="296" y1="268" x2="334" y2="316"/><line x1="218" y1="284" x2="296" y2="268"/></g>
+  <g fill="#11C4DA"><circle cx="180" cy="322" r="12"/><circle cx="218" cy="284" r="14"/><circle cx="256" cy="338" r="12"/><circle cx="296" cy="268" r="16"/><circle cx="334" cy="316" r="12"/></g>
+</g>
+<g fill="#11C4DA"><circle cx="404" cy="124" r="13"/><circle cx="432" cy="92" r="9"/><circle cx="402" cy="74" r="6"/></g></svg>

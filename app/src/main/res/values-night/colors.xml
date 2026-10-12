@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="fondo">#241509</color>
+  <color name="carta">#33200F</color>
+  <color name="bordo">#4A3018</color>
+  <color name="testo">#FFF6EE</color>
+  <color name="accento">#FF9B62</color>
+  <color name="su_accento">#241509</color>
+</resources>

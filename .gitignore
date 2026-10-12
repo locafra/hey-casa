@@ -1,0 +1,7 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+*.apk
+# firma, credenziali Meta e dati dell'edizione personale
+keystore/
