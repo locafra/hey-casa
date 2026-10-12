@@ -43,8 +43,8 @@ android {
   defaultConfig {
     minSdk = 31
     targetSdk = 36
-    versionCode = 12
-    versionName = "1.0.0"
+    versionCode = 13
+    versionName = "1.1.0"
     resValue("string", "app_name", appName)
 
     // Solo telefoni a 64 bit: dimezza l'APK

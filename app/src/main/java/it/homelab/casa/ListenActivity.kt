@@ -37,7 +37,7 @@ class ListenActivity : ComponentActivity() {
         alpha = 240
         cornerRadius = 24 * d
       }
-      text = "🎤 In ascolto…"
+      text = getString(R.string.st_listening)
     }
     setContentView(
         FrameLayout(this).apply {
@@ -56,7 +56,7 @@ class ListenActivity : ComponentActivity() {
       // Gira nello scope dell'app: se l'activity sparisce il comando arriva comunque in fondo
       app.scope.launch {
         if (!app.hasBluetoothPermission()) {
-          app.log("Tile: apri l'app una volta per concedere i permessi")
+          app.log(getString(R.string.log_tile_perms))
         } else {
           app.initWearables()
           app.assistant.runCommand(intent.getStringExtra(EXTRA_SOURCE) ?: "tile")

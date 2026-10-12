@@ -14,24 +14,29 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Disegna la schermata principale in docs/screenshots, tema chiaro e scuro.
+ * Disegna la schermata principale in docs/screenshots: inglese e italiano, tema chiaro e scuro.
  * `./gradlew testPubblicaReleaseUnitTest`
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ScreenshotTest {
 
-  @Test @Config(sdk = [35], qualifiers = "w412dp-h915dp-notnight-420dpi") fun light() = shoot("chiaro")
+  @Test @Config(sdk = [35], qualifiers = "en-w412dp-h915dp-notnight-420dpi") fun light() = shoot("light")
 
-  @Test @Config(sdk = [35], qualifiers = "w412dp-h915dp-night-420dpi") fun dark() = shoot("scuro")
+  @Test @Config(sdk = [35], qualifiers = "en-w412dp-h915dp-night-420dpi") fun dark() = shoot("dark")
+
+  @Test @Config(sdk = [35], qualifiers = "it-w412dp-h915dp-notnight-420dpi") fun chiaro() = shoot("chiaro")
+
+  @Test @Config(sdk = [35], qualifiers = "it-w412dp-h915dp-night-420dpi") fun scuro() = shoot("scuro")
 
   private fun shoot(name: String) {
     val activity = Robolectric.buildActivity(MainActivity::class.java).setup().get()
     val app = activity.application as CasaApp
     // Qualche riga di registro di esempio: senza occhiali resterebbe quasi vuoto
-    app.log("Ascolto avviato da hey-meta")
-    app.log("Comando: \"Spegni luce studio.\"")
-    app.log("Risposta: \"Ho spento luce studio\"")
+    val italian = app.getString(R.string.lang) == "it"
+    app.log(app.getString(R.string.log_listen_start, "hey-meta"))
+    app.log(app.getString(R.string.log_command, if (italian) "Spegni luce studio." else "Turn off the study light."))
+    app.log(app.getString(R.string.log_reply, if (italian) "Ho spento luce studio" else "Turned off study light"))
     org.robolectric.shadows.ShadowLooper.idleMainLooper()
 
     val scroll = findScroll(activity.window.decorView)!!

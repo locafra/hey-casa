@@ -48,14 +48,17 @@ class MainActivity : ComponentActivity() {
           app.initWearables()
           observeWearables()
         } else {
-          app.log("Permesso Bluetooth negato: senza non vedo gli occhiali")
+          app.log(getString(R.string.log_bt_denied))
         }
       }
 
   private val glassesPermission =
       registerForActivityResult(Wearables.RequestPermissionContract()) { result ->
         val st = result.getOrDefault(PermissionStatus.Denied)
-        app.log("Permesso microfono occhiali: ${if (st is PermissionStatus.Granted) "concesso" else "negato"}")
+        app.log(
+            getString(
+                R.string.log_mic_perm,
+                getString(if (st is PermissionStatus.Granted) R.string.word_granted else R.string.word_denied)))
       }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,8 +85,8 @@ class MainActivity : ComponentActivity() {
   /** La 1.0 dell'SDK vuole Meta AI ≥ V290. */
   private fun logMetaAiVersion() {
     val v = runCatching { packageManager.getPackageInfo("com.facebook.stella", 0).versionName }
-        .getOrElse { "non installata" }
-    app.log("App Meta AI: $v")
+        .getOrElse { getString(R.string.not_installed) }
+    app.log(getString(R.string.log_meta_ai, v))
   }
 
   override fun onNewIntent(intent: Intent) {
@@ -102,7 +105,7 @@ class MainActivity : ComponentActivity() {
       // L'avvio vocale arriva anche come intent: ascolto subito (il doppione dal canale viene
       // scartato perché l'assistente è già occupato). Anche a schermo bloccato.
       intent.putExtra(HANDLED, true)
-      app.log("Aperta da Hey Meta")
+      app.log(getString(R.string.log_opened_hm))
       if (app.hasBluetoothPermission()) {
         // Come il tile: solo il riquadro trasparente, la schermata principale va in secondo piano
         startActivity(
@@ -138,24 +141,24 @@ class MainActivity : ComponentActivity() {
         Wearables.registrationState.collect { st ->
           status.text = "Meta AI: ${stateLabel(st)}"
           registerBtn.text =
-              if (st == RegistrationState.REGISTERED) "Scollega da Meta AI" else "Collega a Meta AI"
+              getString(if (st == RegistrationState.REGISTERED) R.string.btn_disconnect else R.string.btn_connect)
         }
       }
     }
     lifecycleScope.launch {
       repeatOnLifecycle(Lifecycle.State.STARTED) {
-        Wearables.devices.collect { app.log("Occhiali visibili: ${it.size}") }
+        Wearables.devices.collect { app.log(getString(R.string.log_glasses_visible, it.size)) }
       }
     }
   }
 
   private fun stateLabel(st: RegistrationState) =
       when (st) {
-        RegistrationState.REGISTERED -> "collegata ✓"
-        RegistrationState.REGISTERING -> "collegamento in corso…"
-        RegistrationState.AVAILABLE -> "da collegare"
-        RegistrationState.UNREGISTERING -> "scollegamento…"
-        RegistrationState.UNAVAILABLE -> "non disponibile (app Meta AI / Developer Mode?)"
+        RegistrationState.REGISTERED -> getString(R.string.st_registered)
+        RegistrationState.REGISTERING -> getString(R.string.st_registering)
+        RegistrationState.AVAILABLE -> getString(R.string.st_available)
+        RegistrationState.UNREGISTERING -> getString(R.string.st_unregistering)
+        RegistrationState.UNAVAILABLE -> getString(R.string.st_unavailable)
       }
 
   // --- UI in codice, niente XML: tema chiaro/scuro dai colori in res/values -------------------
@@ -248,68 +251,70 @@ class MainActivity : ComponentActivity() {
         orientation = LinearLayout.VERTICAL
         setPadding(dp(14), 0, 0, 0)
         addView(label(getString(R.string.app_name), 26f, bold = true))
-        addView(label("Occhiali Meta → Home Assistant", dim = true))
+        addView(label(getString(R.string.subtitle), dim = true))
       })
     })
 
-    column.addView(button("🎤  Prova comando", primary = true) { app.trigger("pulsante") }.apply {
+    column.addView(button(getString(R.string.btn_try), primary = true) { app.trigger(getString(R.string.reason_button)) }.apply {
       textSize = 17f
       minHeight = dp(56)
       (layoutParams as LinearLayout.LayoutParams).topMargin = dp(20)
     })
 
-    column.addView(card("Occhiali") {
+    column.addView(card(getString(R.string.card_glasses)) {
       status = label("Meta AI: …", dim = true).apply { setPadding(0, dp(4), 0, dp(4)) }
       addView(status)
-      registerBtn = button("Collega a Meta AI", primary = true) {
+      registerBtn = button(getString(R.string.btn_connect), primary = true) {
         if (Wearables.registrationState.value == RegistrationState.REGISTERED)
             Wearables.startUnregistration(this@MainActivity)
         else Wearables.startRegistration(this@MainActivity)
       }
       addView(registerBtn)
-      addView(button("Permesso microfono occhiali") { glassesPermission.launch(Permission.MICROPHONE) })
-      addView(button("Aggiorna Toolkit sugli occhiali") {
+      addView(button(getString(R.string.btn_mic_perm)) { glassesPermission.launch(Permission.MICROPHONE) })
+      addView(button(getString(R.string.btn_update_toolkit)) {
         Wearables.openDATGlassesAppUpdate(this@MainActivity)
-            .onSuccess { app.log("Aperta la pagina di aggiornamento in Meta AI") }
-            .onFailure { error, _ -> app.log("Aggiornamento Toolkit: ${error.description}") }
+            .onSuccess { app.log(getString(R.string.log_update_opened)) }
+            .onFailure { error, _ -> app.log(getString(R.string.log_update_failed, error.description)) }
       })
-      addView(button("Aggiorna firmware occhiali") {
+      addView(button(getString(R.string.btn_update_fw)) {
         Wearables.openFirmwareUpdate(this@MainActivity)
-            .onSuccess { app.log("Aperta la pagina firmware in Meta AI") }
+            .onSuccess { app.log(getString(R.string.log_fw_opened)) }
             .onFailure { error, _ -> app.log("Firmware: ${error.description}") }
       })
-      addView(button("Riavvia ascolto \"Hey Meta\"") { app.restartVoiceInvocations("pulsante") })
+      addView(button(getString(R.string.btn_restart_hm)) {
+        app.restartVoiceInvocations(getString(R.string.reason_button))
+      })
     })
 
     val a = app.assistant
     column.addView(card("Home Assistant") {
       fun title(t: String) = addView(label(t, 13f, dim = true).apply { setPadding(0, dp(12), 0, 0) })
-      title("Indirizzo in casa (provato per primo)")
+      title(getString(R.string.lbl_url_home))
       val url = field(a.haUrl, uri = true)
       addView(url)
-      title("Indirizzo da fuori casa (ripiego)")
+      title(getString(R.string.lbl_url_remote))
       val urlRemote = field(a.haUrlRemote, uri = true).apply { hint = "https://…" }
       addView(urlRemote)
-      title("Token di accesso a lunga durata")
-      val savedHint = "•••• salvato (lascia vuoto per tenerlo)"
+      title(getString(R.string.lbl_token))
+      val savedHint = getString(R.string.hint_token_saved)
       val token = field("", password = true).apply {
-        hint = if (a.haToken.isBlank()) "incollalo qui" else savedHint
+        hint = if (a.haToken.isBlank()) getString(R.string.hint_token) else savedHint
       }
       addView(token)
-      title("Agente di conversazione")
+      title(getString(R.string.lbl_agent))
       val agent = field(a.agentId)
       addView(agent)
-      title("Agente LLM se Home Assistant non capisce (vuoto = nessuno)")
+      title(getString(R.string.lbl_llm))
       val llmAgent = field(a.llmAgentId).apply { hint = "conversation.…" }
       addView(llmAgent)
       val glasses = CheckBox(this@MainActivity).apply {
-        text = "Trascrizione sugli occhiali (Speech, sperimentale)"
+        text = getString(R.string.chk_glasses_speech)
         setTextColor(getColor(R.color.testo))
         isChecked = a.useGlassesSpeech
         setPadding(0, dp(12), 0, dp(4))
       }
       addView(glasses)
-      addView(button("Salva", primary = true) {
+      addView(button(getString(R.string.btn_save), primary = true) {
         a.haUrl = url.text.toString()
         a.haUrlRemote = urlRemote.text.toString()
         if (token.text.isNotBlank()) a.haToken = token.text.toString()
@@ -318,17 +323,17 @@ class MainActivity : ComponentActivity() {
         a.useGlassesSpeech = glasses.isChecked
         token.setText("")
         token.hint = savedHint
-        app.log("Impostazioni salvate")
+        app.log(getString(R.string.log_saved))
       })
-      addView(button("Prova Home Assistant (\"che ore sono\")") {
+      addView(button(getString(R.string.btn_test_ha, getString(R.string.test_phrase))) {
         lifecycleScope.launch {
-          val r = runCatching { a.askHomeAssistant("che ore sono") }
-          app.log("Test HA: " + r.fold({ it }, { "errore ${it.message}" }))
+          val r = runCatching { a.askHomeAssistant(getString(R.string.test_phrase)) }
+          app.log(getString(R.string.log_test, r.fold({ it }, { getString(R.string.word_error, it.message) })))
         }
       })
     })
 
-    column.addView(card("Registro") {
+    column.addView(card(getString(R.string.card_log)) {
       logView = label("", 11f).apply {
         typeface = Typeface.MONOSPACE
         setTextIsSelectable(true)

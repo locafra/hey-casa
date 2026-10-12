@@ -63,11 +63,11 @@ class CasaApp : Application() {
     Wearables.initialize(this)
         .onSuccess {
           wearablesReady = true
-          log("SDK Meta inizializzato (dev mode: ${Wearables.isDevMode})")
-          restartVoiceInvocations("avvio")
+          log(getString(R.string.log_sdk_ready, Wearables.isDevMode.toString()))
+          restartVoiceInvocations(getString(R.string.reason_start))
           watchDevicesForVoice()
         }
-        .onFailure { error, _ -> log("Init SDK fallita: ${error.description}") }
+        .onFailure { error, _ -> log(getString(R.string.log_sdk_failed, error.description)) }
   }
 
   private var voiceJob: Job? = null
@@ -90,10 +90,10 @@ class CasaApp : Application() {
           // della registrazione lo fa cadere con la richiesta ancora in mano a Meta AI
           // (→ "Something went wrong"). Come nel sample BirdSpotter, si aspetta REGISTERED.
           if (Wearables.registrationState.value != RegistrationState.REGISTERED) {
-            log("Hey Meta: aspetto la registrazione con Meta AI")
+            log(getString(R.string.log_hm_wait))
             Wearables.registrationState.first { it == RegistrationState.REGISTERED }
           }
-          log("Hey Meta: apro lo stream ($reason)")
+          log(getString(R.string.log_hm_open, reason))
           val stream = Wearables.startVoiceInvocationsStream(AutoDeviceSelector())
           voiceStream = stream
           launch {
@@ -108,7 +108,7 @@ class CasaApp : Application() {
           }
           launch {
             stream.errors.collect { err ->
-              log("Hey Meta: errore ${err.name} (${err.description})")
+              log(getString(R.string.log_hm_error, err.name, err.description))
               if (err in RETRYABLE) scheduleVoiceRetry()
             }
           }
@@ -116,7 +116,7 @@ class CasaApp : Application() {
             stream.invocations.collect { invocation ->
               when (invocation) {
                 is LaunchApp -> {
-                  log("Hey Meta: invocazione ricevuta ✓")
+                  log(getString(R.string.log_hm_received))
                   voiceBackoffMs = VOICE_BACKOFF_MIN_MS
                   invocation.responseHandle.sendSuccess(null)
                   // Meta AI porta l'app in primo piano: l'ascolto parte subito, senza
@@ -124,7 +124,7 @@ class CasaApp : Application() {
                   scope.launch { assistant.runCommand("hey-meta") }
                 }
                 else -> {
-                  log("Hey Meta: azione non gestita ${invocation::class.simpleName}")
+                  log(getString(R.string.log_hm_unhandled, invocation::class.simpleName))
                 }
               }
             }
@@ -136,10 +136,10 @@ class CasaApp : Application() {
     if (voiceRetry?.isActive == true) return
     val wait = voiceBackoffMs
     voiceBackoffMs = (voiceBackoffMs * 2).coerceAtMost(VOICE_BACKOFF_MAX_MS)
-    log("Hey Meta: riprovo tra ${"%.1f".format(wait / 1000.0)} s")
+    log(getString(R.string.log_hm_retry, "%.1f".format(wait / 1000.0)))
     voiceRetry = scope.launch {
       delay(wait)
-      restartVoiceInvocations("nuovo tentativo")
+      restartVoiceInvocations(getString(R.string.reason_retry))
     }
   }
 
@@ -152,7 +152,7 @@ class CasaApp : Application() {
         if (has && !hadDevice) {
           delay(5_000) // lascia stabilizzare il collegamento
           voiceBackoffMs = VOICE_BACKOFF_MIN_MS
-          restartVoiceInvocations("occhiali collegati")
+          restartVoiceInvocations(getString(R.string.reason_glasses))
         }
         hadDevice = has
       }
@@ -165,7 +165,7 @@ class CasaApp : Application() {
 
   fun log(msg: String) {
     Log.i(TAG, msg)
-    val ts = SimpleDateFormat("HH:mm:ss", Locale.ITALY).format(Date())
+    val ts = SimpleDateFormat("HH:mm:ss", Locale.ROOT).format(Date())
     _log.value = ("$ts  $msg\n" + _log.value).take(8000)
   }
 

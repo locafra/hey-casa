@@ -13,18 +13,19 @@ the answer is read back in your ear:
 > "Turn off the study light" → "Turned off the study light"
 
 <p align="center">
-  <img src="docs/screenshots/chiaro.png" width="300" alt="Main screen, light theme">
+  <img src="docs/screenshots/light.png" width="300" alt="Main screen, light theme">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/scuro.png" width="300" alt="Main screen, dark theme">
+  <img src="docs/screenshots/dark.png" width="300" alt="Main screen, dark theme">
 </p>
 
 <sub>The screenshots are drawn from the real layout by a Robolectric test (`ScreenshotTest`), with
-three sample log lines. The interface is in Italian; button names are translated below.</sub>
+three sample log lines.</sub>
 
 ## Contents
 
 - [How it works](#how-it-works)
 - [Requirements](#requirements)
+- [Languages](#languages)
 - [Quick start (Developer Mode)](#quick-start-developer-mode)
 - [Connecting through a Meta developer account](#connecting-through-a-meta-developer-account)
 - [Changing the voice command](#changing-the-voice-command)
@@ -34,7 +35,7 @@ three sample log lines. The interface is in Italian; button names are translated
 ## How it works
 
 1. Listening starts from **"Hey Meta, open …"**, from the **Quick Settings tile**, or from the
-   "Prova comando" (*Try a command*) button.
+   **Try a command** button.
 2. The sentence is transcribed on the glasses (the toolkit's Speech feature). If that is not
    available, the phone's speech recogniser takes over, using the glasses' microphone over Bluetooth.
 3. The text goes to Home Assistant's `POST /api/conversation/process`.
@@ -52,19 +53,27 @@ when the public domain is not reachable from your own Wi-Fi.
 - An Android 12+ phone, 64-bit.
 - Home Assistant with a [long-lived access token](https://www.home-assistant.io/docs/authentication/#your-account-profile).
 
+## Languages
+
+The app follows the phone's language: **Italian** if the phone is set to Italian, **English**
+otherwise. The language applies to the interface, to the phone's speech recogniser, to the language
+sent to Home Assistant and to the voice that reads the answer.
+
+Transcription on the glasses follows the language of the glasses, and Home Assistant must have that
+language available for its conversation agent.
+
 ## Quick start (Developer Mode)
 
 No Meta developer account is needed for this path.
 
 1. In Meta AI: **Settings → App Info**, tap the version number five times, turn on **Developer Mode**.
 2. Install the APK from the [releases](../../releases) and open Hey Casa!!. Allow Bluetooth and microphone.
-3. Tap **Collega a Meta AI** (*Connect to Meta AI*), then **Permesso microfono occhiali**
-   (*Glasses microphone permission*).
-4. If you see "Your glasses need an update", tap **Aggiorna Toolkit sugli occhiali** (*Update the
-   toolkit on the glasses*) while wearing them.
-5. Under **Home Assistant**, enter the address and the token, tap **Salva** (*Save*), then
-   **Prova Home Assistant** (*Test Home Assistant*).
-6. Tap **Prova comando** with the glasses on.
+3. Tap **Connect to Meta AI**, then **Glasses microphone permission**.
+4. If you see "Your glasses need an update", tap **Update the toolkit on the glasses** while
+   wearing them.
+5. Under **Home Assistant**, enter the address and the token, tap **Save**, then
+   **Test Home Assistant**.
+6. Tap **Try a command** with the glasses on.
 7. Add the **Hey Casa!!** tile to Quick Settings: it starts listening without opening the app.
 
 The token stays in the app's preferences on the phone. It is not in the APK.
@@ -166,7 +175,7 @@ The APK is in `app/build/outputs/apk/prv/release/`. Its version has the `prv` su
 1. In Meta AI, open the device **Settings → Release Channel** and check that your Beta channel is selected.
 2. Turn **Developer Mode off**.
 3. If the app was connected before in Developer Mode, remove it under **Settings → App connections**.
-4. Open Hey Casa!!, tap **Collega a Meta AI**, then **Permesso microfono occhiali**.
+4. Open Hey Casa!!, tap **Connect to Meta AI**, then **Glasses microphone permission**.
 5. Keep the glasses connected for about fifteen minutes, then say **"Hey Meta, open *your app name*"**.
 
 ## Changing the voice command
@@ -191,7 +200,7 @@ The name is the **app name of the project in the Developer Center**, not the nam
 3. Wait for **Ready**, then assign it: **Distribute → Release channels → Beta → View → Version →
    Edit → Save changes**.
 4. On the phone, in Meta AI: **Settings → App connections**, remove the app. Open Hey Casa!! and
-   tap **Collega a Meta AI** again.
+   tap **Connect to Meta AI** again.
 5. Keep the glasses connected for about fifteen minutes before trying.
 
 You do not need to rebuild or reinstall the APK.
@@ -212,9 +221,8 @@ fifteen minutes with the glasses connected.
 - Capital letters do not matter, **spaces do**: "My Home" and "MyHome" are different names.
 - Prefer one or two plain words in the language you speak to the glasses. Avoid punctuation and digits.
 - Avoid words that Meta AI already acts on by itself, such as "music", "camera" or "WhatsApp".
-- If the glasses answer but nothing happens in the app, tap **Riavvia ascolto "Hey Meta"**
-  (*Restart "Hey Meta" listening*) and read the **Registro** (*Log*) card: a line
-  "Hey Meta: invocazione ricevuta ✓" means the command arrived.
+- If the glasses answer but nothing happens in the app, tap **Restart "Hey Meta" listening** and
+  read the **Log** card: a line "Hey Meta: invocation received ✓" means the command arrived.
 
 ## Building
 
@@ -249,7 +257,7 @@ To redraw the screenshots: `./gradlew testPubblicaReleaseUnitTest`.
   channels, not in production.
 - Developer Mode registers one third-party app at a time.
 - If Meta reports `INSUFFICIENT_SDK_VERSION`, update `mwdat` in `gradle/libs.versions.toml`.
-- The interface, speech recognition and speech synthesis are in Italian.
+- English and Italian only (see [Languages](#languages)).
 
 ## License
 

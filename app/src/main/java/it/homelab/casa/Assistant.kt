@@ -53,8 +53,8 @@ class Assistant(private val app: CasaApp) {
   init {
     tts = TextToSpeech(app) { status ->
       ttsReady = status == TextToSpeech.SUCCESS
-      if (ttsReady) tts?.language = Locale.ITALIAN
-      app.log(if (ttsReady) "Sintesi vocale pronta" else "Sintesi vocale non disponibile")
+      if (ttsReady) tts?.language = Locale.forLanguageTag(app.getString(R.string.lang_tag))
+      app.log(app.getString(if (ttsReady) R.string.log_tts_ready else R.string.log_tts_unavailable))
     }
   }
 
@@ -92,15 +92,15 @@ class Assistant(private val app: CasaApp) {
 
   suspend fun runCommand(source: String) {
     if (busy) {
-      app.log("Già in ascolto, ignoro ($source)")
+      app.log(app.getString(R.string.log_busy, source))
       return
     }
     busy = true
     try {
-      app.log("Ascolto avviato da $source")
-      status.value = "🎤 In ascolto…"
+      app.log(app.getString(R.string.log_listen_start, source))
+      status.value = app.getString(R.string.st_listening)
       if (haToken.isBlank()) {
-        speak("Manca il token di Home Assistant nelle impostazioni.")
+        speak(app.getString(R.string.say_no_token))
         return
       }
       beep()
@@ -108,20 +108,20 @@ class Assistant(private val app: CasaApp) {
       if (useGlassesSpeech) text = listenOnGlasses()
       if (text == null) text = listenOnPhone()
       if (text.isNullOrBlank()) {
-        status.value = "Non ho capito"
-        speak("Non ho capito.")
+        status.value = app.getString(R.string.st_not_understood)
+        speak(app.getString(R.string.say_not_understood))
         return
       }
-      app.log("Comando: \"$text\"")
+      app.log(app.getString(R.string.log_command, text))
       status.value = "“$text”"
       val reply =
           try {
             askHomeAssistant(text)
           } catch (e: Exception) {
-            app.log("Errore HA: ${e.message}")
-            "Home Assistant non risponde."
+            app.log(app.getString(R.string.log_ha_error, e.message))
+            app.getString(R.string.say_ha_down)
           }
-      app.log("Risposta: \"$reply\"")
+      app.log(app.getString(R.string.log_reply, reply))
       status.value = reply
       speak(reply)
     } finally {
@@ -133,24 +133,24 @@ class Assistant(private val app: CasaApp) {
 
   private suspend fun listenOnGlasses(): String? {
     if (Wearables.registrationState.value != RegistrationState.REGISTERED) {
-      app.log("Occhiali: app non registrata con Meta AI, uso il telefono")
+      app.log(app.getString(R.string.log_g_unregistered))
       return null
     }
     val perm = Wearables.checkPermissionStatus(Permission.MICROPHONE).getOrNull()
     if (perm !is PermissionStatus.Granted) {
-      app.log("Occhiali: permesso microfono non concesso, uso il telefono")
+      app.log(app.getString(R.string.log_g_noperm))
       return null
     }
     val created = Wearables.createSession(AutoDeviceSelector())
     val session: DeviceSession =
         created.getOrNull()
             ?: run {
-              app.log("Occhiali: sessione non creata (${created.errorOrNull()?.description})")
+              app.log(app.getString(R.string.log_g_nosession, created.errorOrNull()?.description))
               return null
             }
     val errorsJob =
-        app.scope.launch { session.errors.collect { app.log("Occhiali: errore sessione ${it.description}") } }
-    val statesJob = app.scope.launch { session.state.collect { app.log("Occhiali: sessione $it") } }
+        app.scope.launch { session.errors.collect { app.log(app.getString(R.string.log_g_session_error, it.description)) } }
+    val statesJob = app.scope.launch { session.state.collect { app.log(app.getString(R.string.log_g_session, it)) } }
     try {
       session.start()
       // Lo stato iniziale può essere già STOPPED: conta solo uno STOPPED arrivato dopo STARTING
@@ -163,27 +163,27 @@ class Assistant(private val app: CasaApp) {
             }
           }
       if (started != DeviceSessionState.STARTED) {
-        app.log("Occhiali: sessione non partita (${started ?: "timeout"})")
+        app.log(app.getString(R.string.log_g_notstarted, started ?: "timeout"))
         return null
       }
       val added = session.addSpeech()
       val speech =
           added.getOrNull()
               ?: run {
-                app.log("Occhiali: Speech non disponibile (${added.errorOrNull()?.description})")
+                app.log(app.getString(R.string.log_g_nospeech, added.errorOrNull()?.description))
                 return null
               }
       try {
         val startResult = speech.start()
         if (startResult.isFailure) {
-          app.log("Occhiali: Speech non avviato (${startResult.errorOrNull()?.description})")
+          app.log(app.getString(R.string.log_g_speech_notstarted, startResult.errorOrNull()?.description))
           return null
         }
         val result =
             withTimeoutOrNull(LISTEN_TIMEOUT_MS) {
               speech.transcriptions.filterNotNull().first { it.isFinal && it.text.isNotBlank() }
             }
-        if (result == null) app.log("Occhiali: nessuna frase entro il timeout")
+        if (result == null) app.log(app.getString(R.string.log_g_timeout))
         return result?.text
       } finally {
         speech.stop()
@@ -200,11 +200,14 @@ class Assistant(private val app: CasaApp) {
 
   private suspend fun listenOnPhone(): String? {
     if (!SpeechRecognizer.isRecognitionAvailable(app)) {
-      app.log("Telefono: riconoscimento vocale non disponibile")
+      app.log(app.getString(R.string.log_p_unavailable))
       return null
     }
     val bt = useBluetoothMic()
-    app.log("Telefono: ascolto (${if (bt) "microfono occhiali via HFP" else "microfono telefono"})")
+    app.log(
+        app.getString(
+            R.string.log_p_listen,
+            app.getString(if (bt) R.string.mic_glasses else R.string.mic_phone)))
     try {
       if (bt) delay(500) // tempo per aprire il canale SCO
       return withContext(Dispatchers.Main) {
@@ -227,7 +230,7 @@ class Assistant(private val app: CasaApp) {
           }
 
           override fun onError(error: Int) {
-            app.log("Telefono: errore riconoscimento $error")
+            app.log(app.getString(R.string.log_p_error, error))
             recognizer.destroy()
             if (cont.isActive) cont.resume(null)
           }
@@ -243,7 +246,7 @@ class Assistant(private val app: CasaApp) {
     val intent =
         Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "it-IT")
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, app.getString(R.string.lang_tag))
             .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
     recognizer.startListening(intent)
   }
@@ -275,8 +278,8 @@ class Assistant(private val app: CasaApp) {
       app.log("HA via $url")
       // HA non ha capito (nessun intent o nessuna entità): si passa all'agente LLM, se configurato.
       if (reply.notUnderstood && llmAgentId.isNotBlank() && llmAgentId != agentId) {
-        app.log("HA non ha capito (${reply.code}): passo a $llmAgentId")
-        status.value = "🤔 Ci penso…"
+        app.log(app.getString(R.string.log_ha_fallback, reply.code, llmAgentId))
+        status.value = app.getString(R.string.st_thinking)
         return try {
           val now = System.currentTimeMillis()
           val cid = llmConversationId?.takeIf { now - llmConversationAt < LLM_CONTEXT_MS }
@@ -286,12 +289,12 @@ class Assistant(private val app: CasaApp) {
           llm.speech
         } catch (e: Exception) {
           app.log("LLM $llmAgentId: ${describe(url, e)}")
-          "L'assistente non ha risposto in tempo."
+          app.getString(R.string.say_llm_timeout)
         }
       }
       return reply.speech
     }
-    throw last ?: IllegalStateException("nessun URL configurato")
+    throw last ?: IllegalStateException(app.getString(R.string.err_no_url))
   }
 
   /** Conversazione LLM in corso: si riusa per qualche minuto, così "spegnila" sa di cosa si parla. */
@@ -307,7 +310,7 @@ class Assistant(private val app: CasaApp) {
       withContext(Dispatchers.IO) {
         val host = runCatching { URL(url).host }.getOrNull()
         val ips = runCatching { InetAddress.getAllByName(host).joinToString { it.hostAddress ?: "?" } }
-            .getOrElse { "DNS fallito" }
+            .getOrElse { app.getString(R.string.err_dns) }
         "${e.javaClass.simpleName}: ${e.message} [$host → $ips]"
       }
 
@@ -331,7 +334,7 @@ class Assistant(private val app: CasaApp) {
           val body =
               JSONObject()
                   .put("text", text)
-                  .put("language", "it")
+                  .put("language", app.getString(R.string.lang))
                   .apply { if (agent.isNotBlank()) put("agent_id", agent) }
                   .apply { if (conversationId != null) put("conversation_id", conversationId) }
           conn.outputStream.use { it.write(body.toString().toByteArray()) }
@@ -344,7 +347,7 @@ class Assistant(private val app: CasaApp) {
                   ?.optJSONObject("speech")
                   ?.optJSONObject("plain")
                   ?.optString("speech")
-                  ?.takeIf { it.isNotBlank() } ?: "Fatto."
+                  ?.takeIf { it.isNotBlank() } ?: app.getString(R.string.say_done)
           val errorCode =
               if (response?.optString("response_type") == "error")
                   response.optJSONObject("data")?.optString("code")
@@ -368,7 +371,7 @@ class Assistant(private val app: CasaApp) {
   suspend fun speak(text: String) {
     val engine = tts
     if (!ttsReady || engine == null) {
-      app.log("TTS non pronto: $text")
+      app.log(app.getString(R.string.log_tts_notready, text))
       return
     }
     suspendCancellableCoroutine { cont ->

@@ -25,6 +25,7 @@ righe di registro di esempio.</sub>
 
 - [Come funziona](#come-funziona)
 - [Cosa serve](#cosa-serve)
+- [Lingue](#lingue)
 - [Avvio rapido (Developer Mode)](#avvio-rapido-developer-mode)
 - [Collegamento con un account sviluppatore Meta](#collegamento-con-un-account-sviluppatore-meta)
 - [Cambiare il comando vocale](#cambiare-il-comando-vocale)
@@ -51,6 +52,15 @@ Wi-Fi di casa il dominio pubblico non è raggiungibile.
 - Occhiali supportati dal toolkit, firmware V128 o successivo, e app Meta AI V290 o successiva.
 - Telefono Android 12 o successivo, a 64 bit.
 - Home Assistant con un [token di accesso a lunga durata](https://www.home-assistant.io/docs/authentication/#your-account-profile).
+
+## Lingue
+
+L'app segue la lingua del telefono: **italiano** se il telefono è in italiano, **inglese** negli
+altri casi. La lingua vale per l'interfaccia, per il riconoscimento vocale del telefono, per la
+lingua mandata a Home Assistant e per la voce che legge la risposta.
+
+La trascrizione sugli occhiali segue la lingua degli occhiali, e Home Assistant deve avere quella
+lingua disponibile per il suo agente di conversazione.
 
 ## Avvio rapido (Developer Mode)
 
@@ -247,7 +257,7 @@ Per ridisegnare le schermate: `./gradlew testPubblicaReleaseUnitTest`.
   beta, non in produzione.
 - La Developer Mode registra una sola app di terze parti alla volta.
 - Se Meta segnala `INSUFFICIENT_SDK_VERSION` va aggiornato `mwdat` in `gradle/libs.versions.toml`.
-- Interfaccia, riconoscimento e sintesi vocale sono in italiano.
+- Solo italiano e inglese (vedi [Lingue](#lingue)).
 
 ## Licenza
 
