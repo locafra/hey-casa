@@ -20,6 +20,9 @@ val mwdat = props("mwdat.properties")
 // applicationId e valori predefiniti delle impostazioni
 val prv = props("prv.properties")
 
+// Nome dell'app: in Developer Mode è anche il nome da dire dopo "Hey Meta, open …"
+val appName = providers.gradleProperty("appName").orNull ?: "Hey Casa!!"
+
 fun quoted(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
@@ -42,7 +45,7 @@ android {
     targetSdk = 36
     versionCode = 12
     versionName = "1.0.0"
-    resValue("string", "app_name", "Hey Casa!!")
+    resValue("string", "app_name", appName)
 
     // Solo telefoni a 64 bit: dimezza l'APK
     ndk { abiFilters += "arm64-v8a" }
@@ -67,6 +70,7 @@ android {
       dimension = "edizione"
       applicationId = prv.getProperty("application_id", "io.github.locafra.heycasa.prv")
       versionNameSuffix = "prv"
+      resValue("string", "app_name", prv.getProperty("app_name", appName))
       // Release channel (Dev Mode OFF): ID e token del progetto nel Developer Center
       manifestPlaceholders["mwdat_application_id"] = mwdat.getProperty("mwdat_application_id", "0")
       manifestPlaceholders["mwdat_client_token"] = mwdat.getProperty("mwdat_client_token", "0")
@@ -88,6 +92,8 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
   packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+  // Le schermate del README le disegna Robolectric (ScreenshotTest), senza telefono né emulatore
+  testOptions { unitTests { isIncludeAndroidResources = true } }
 }
 
 kotlin { compilerOptions { jvmTarget = JvmTarget.JVM_17 } }
@@ -98,4 +104,6 @@ dependencies {
   implementation(libs.androidx.activity)
   implementation(libs.androidx.lifecycle.runtime)
   implementation(libs.androidx.lifecycle.process)
+  testImplementation(libs.junit)
+  testImplementation(libs.robolectric)
 }

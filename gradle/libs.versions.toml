@@ -4,6 +4,8 @@ kotlin = "2.2.21"
 mwdat = "1.0.0"
 activity = "1.13.0"
 lifecycle = "2.10.0"
+junit = "4.13.2"
+robolectric = "4.17"
 
 [libraries]
 mwdat-core = { group = "com.meta.wearable", name = "mwdat-core", version.ref = "mwdat" }
@@ -11,6 +13,8 @@ mwdat-speech = { group = "com.meta.wearable", name = "mwdat-speech", version.ref
 androidx-activity = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
 androidx-lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
